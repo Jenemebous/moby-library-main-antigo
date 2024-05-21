@@ -1,0 +1,102 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+}
+
+.profile-container, .bookshelf-container {
+    max-width: 800px;
+    margin: 20px auto;
+    background-color: #fff;
+    padding: 20px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.profile-header {
+    display: flex;
+    align-items: center;
+    border-bottom: 2px solid #f4f4f4;
+    padding-bottom: 20px;
+    margin-bottom: 20px;
+}
+
+.profile-pic {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    margin-right: 20px;
+}
+
+.profile-info h1 {
+    margin: 0;
+    font-size: 2em;
+}
+
+.profile-info .description {
+    color: #666;
+    margin-top: 10px;
+}
+
+.profile-info .bookshelf-link {
+    display: inline-block;
+    margin-top: 20px;
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 5px;
+}
+
+.bookshelf-container h2 {
+    font-size: 1.5em;
+    border-bottom: 2px solid #f4f4f4;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+#add-book-form {
+    margin-bottom: 20px;
+}
+
+#add-book-form input {
+    display: block;
+    margin: 10px 0;
+    padding: 10px;
+    width: calc(100% - 22px); /* Adjusting for padding and borders */
+}
+
+#add-book-form button {
+    margin-right: 10px;
+    padding: 10px 20px;
+}
+
+.shelf {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.book {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 120px;
+    text-align: center;
+}
+
+.book img {
+    width: 100px;
+    height: 150px;
+    margin-bottom: 10px;
+}
+
+.book p {
+    margin: 0;
+    font-weight: bold;
+    font-size: 0.9em;
+}
+
+.hidden {
+    display: none;
+}
