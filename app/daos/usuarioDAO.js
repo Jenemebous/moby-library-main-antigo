@@ -1,35 +1,43 @@
 const db = require('../db/database');
+const bcrypt = require('bcryptjs');
 
 class UsuarioDAO {
-    static buscarTodos(callback) {
-        db.query('SELECT * FROM users', (err, rows) => {
-            if (err) {
-                return callback(err);
+    constructor() {}
+
+    buscarPorUsuario(nom_usuario, callback) {
+        const sql = 'SELECT * FROM users WHERE nom_usuario = ?';
+        db.query(sql, [nom_usuario], (error, results) => {
+            if (error) {
+                return callback(error, null);
             }
-            callback(null, rows);
+            if (results.length > 0) {
+                return callback(null, results[0]);
+            }
+            return callback(null, null);
         });
     }
 
-    static adicionar(nom_usuario, senha, callback) {
-        db.query('INSERT INTO users (nom_usuario, senha) VALUES (?, ?)', [nom_usuario, senha], (err) => {
-            if (err) {
-                return callback(err);
+    adicionar(nom_usuario, senha, callback) {
+        const salt = bcrypt.genSaltSync(10);
+        const hash = bcrypt.hashSync(senha, salt);
+        const sql = 'INSERT INTO users (nom_usuario, senha) VALUES (?, ?)';
+        db.query(sql, [nom_usuario, hash], (error, results) => {
+            if (error) {
+                return callback(error);
             }
             callback(null);
         });
     }
-    
-    static buscarPorUsuario(nom_usuario, callback) {
-        db.query('SELECT * FROM users WHERE nom_usuario = ?', [nom_usuario], (err, rows) => {
-            if (err) {
-                return callback(err);
+
+    buscarTodos(callback) {
+        const sql = 'SELECT * FROM users';
+        db.query(sql, (error, results) => {
+            if (error) {
+                return callback(error, null);
             }
-            if (rows.length === 0) {
-                return callback(null, null); 
-            }
-            callback(null, rows[0]); 
+            callback(null, results);
         });
     }
 }
 
-module.exports = UsuarioDAO;
+module.exports = new UsuarioDAO();
