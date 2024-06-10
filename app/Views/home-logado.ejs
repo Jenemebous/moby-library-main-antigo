@@ -18,13 +18,10 @@
 <body>
     <header>
         <nav id="top" ;>
-            <div class="welcome">
-                <span>SEJA BEM VINDO!</span>
-            </div>
-
-            <a href="./signup.html" class=welcome>
-                <span>REGISTRE-SE</span>
-            </a>
+           
+         <a href="#" class=welcome>
+            <span><span class="user-name">Bem-vindo, <strong><%= nom_usuario %></strong></span></span>
+    </a>
 
         </nav>
         <nav id="mid">
@@ -40,6 +37,15 @@
                 </div>
             </div>
 
+            <div class="dropdown" style="margin-left: 10px;">
+                <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                    EXPLORAR
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                    <li><a class="dropdown-item" href="./adicionar.html">Comece por aqui!</a></li>
+                    <li><a class="dropdown-item" href="./perfil">Perfil</a></li>
+                </ul>
+            </div>
 
         </nav>
         <nav id="bottom">

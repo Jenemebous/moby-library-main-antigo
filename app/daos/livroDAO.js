@@ -3,6 +3,8 @@ const db = require('../db/database');
 class LivroDAO {
     constructor() {}
 
+
+    /*
     adicionar(titulo, autor, genero, ano, sinopse, callback) {
         const sql = 'INSERT INTO livro (titulo, autor, genero, ano_de_publicacao, sinopse) VALUES (?, ?, ?, ?, ?)';
         db.query(sql, [titulo, autor, genero, ano, sinopse], (error, results) => {
@@ -12,7 +14,7 @@ class LivroDAO {
             callback(null);
         });
     }
-
+*/
    
     buscarTodos(callback) {
         const sql = 'SELECT * FROM livro';
@@ -44,6 +46,8 @@ class LivroDAO {
         });
     }
     
+
+    /*
     buscarPorTermoDePesquisa(searchTerm, callback) {
         const sql = 'SELECT * FROM livro WHERE titulo LIKE ? OR autor LIKE ?';
         const searchTermWithWildcard = '%' + searchTerm + '%';
@@ -57,5 +61,36 @@ class LivroDAO {
     
 }
 
+*/
+adicionar(titulo, autor, genero, ano, sinopse, id_usuario, callback) {
+    const sql = 'INSERT INTO livro (titulo, autor, genero, ano_de_publicacao, sinopse, id_usuario) VALUES (?, ?, ?, ?, ?, ?)';
+    db.query(sql, [titulo, autor, genero, ano, sinopse, id_usuario], (error, results) => {
+        if (error) {
+            return callback(error);
+        }
+        callback(null);
+    });
+}
 
+buscarTodosPorUsuario(id_usuario, callback) {
+    const sql = 'SELECT * FROM livro WHERE id_usuario = ?';
+    db.query(sql, [id_usuario], (error, results) => {
+        if (error) {
+            return callback(error, null);
+        }
+        callback(null, results);
+    });
+}
+
+buscarPorTermoDePesquisa(searchTerm, id_usuario, callback) {
+    const sql = 'SELECT * FROM livro WHERE (titulo LIKE ? OR autor LIKE ?) AND id_usuario = ?';
+    const searchTermWithWildcard = '%' + searchTerm + '%';
+    db.query(sql, [searchTermWithWildcard, searchTermWithWildcard, id_usuario], (error, results) => {
+        if (error) {
+            return callback(error, null);
+        }
+        callback(null, results);
+    });
+}
+}
 module.exports = new LivroDAO();
