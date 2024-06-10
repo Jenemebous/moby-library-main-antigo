@@ -61,7 +61,7 @@ app.get('/home-logado', (req, res) => {
         return res.redirect('/login.html');
     }
 
-    // Passe o nome do usuário para o frontend
+    // Passa o nome do usuário para o frontend
     const nom_usuario = req.session.nom_usuario;
 
     res.render(__dirname + '/app/Views/home-logado', { nom_usuario });
@@ -171,24 +171,34 @@ app.post('/adicionarLivro', (req, res) => {
 
 // Rota para buscar todos os livros
 
-
-
+// Rota para visualizar livros com pesquisa
 app.get('/livros', (req, res) => {
-    const id_usuario = req.session.usuario ? req.session.usuario.id_usuario : null; // Pega o ID do usuário da sessão
+    const id_usuario = req.session.usuario ? req.session.usuario.id_usuario : null; 
 
     if (!id_usuario) {
-        return res.status(401).send('Usuário não está logado');
+        return res.redirect('/login.html'); 
     }
 
-    // Busca apenas os livros associados ao ID do usuário atual
-    LivroDAO.buscarTodosPorUsuario(id_usuario, (error, livros) => {
-        if (error) {
-            console.error('Erro ao buscar livros:', error);
-            return res.status(500).send('Erro ao buscar livros');
-        }
-        res.status(200).json(livros);
-    });
+    const searchTerm = req.query.search;
+    if (searchTerm) {
+        LivroDAO.buscarPorTermoDePesquisa(searchTerm, (error, livros) => {
+            if (error) {
+                console.error('Erro ao buscar livros:', error);
+                return res.status(500).send('Erro ao buscar livros');
+            }
+            res.render('visualizar', { livros });
+        });
+    } else {
+        LivroDAO.buscarTodosPorUsuario(id_usuario, (error, livros) => {
+            if (error) {
+                console.error('Erro ao buscar livros:', error);
+                return res.status(500).send('Erro ao buscar livros');
+            }
+            res.render('visualizar', { livros });
+        });
+    }
 });
+
 
 
 // Rota para remover livro
@@ -242,45 +252,38 @@ app.post('/editarLivro', (req, res) => {
 });
 
 // ejs
-
+// Rota para visualizar livros
 app.get('/visualizar', (req, res) => {
-    const id_usuario = req.session.usuario ? req.session.usuario.id_usuario : null; // Pega o ID do usuário da sessão
-
-    if (!id_usuario) {
-        return res.status(401).send('Usuário não está logado');
-    }
-
-    // Busca apenas os livros associados ao ID do usuário atual
-    LivroDAO.buscarTodosPorUsuario(id_usuario, (error, livros) => {
+    LivroDAO.buscarTodos((error, livros) => {
         if (error) {
             console.error('Erro ao buscar livros:', error);
             return res.status(500).send('Erro ao buscar livros');
         }
-    
+
         res.render('visualizar', { livros });
     });
 });
 
+
 //
 
 app.get('/perfil', (req, res) => {
-    const id_usuario = req.session.usuario ? req.session.usuario.id_usuario : null; // Pega o ID do usuário da sessão
+    const id_usuario = req.session.usuario ? req.session.usuario.id_usuario : null; 
 
     if (!id_usuario) {
-        return res.redirect('/login.html'); // Redireciona se o usuário não estiver logado
+        return res.redirect('/login.html'); 
     }
 
-    // Busca os 5 primeiros livros associados ao ID do usuário atual
     LivroDAO.buscarTodosPorUsuario(id_usuario, (error, livros) => {
         if (error) {
             console.error('Erro ao buscar livros:', error);
             return res.status(500).send('Erro ao buscar livros');
         }
 
-        // Limita a lista de livros aos 5 primeiros
+       
         const cincoPrimeirosLivros = livros.slice(0, 5);
 
-        // Renderiza a página de perfil com os 5 primeiros livros ou a mensagem de nenhum livro adicionado
+     
         res.render(__dirname + '/app/Views/perfil', { nom_usuario: req.session.nom_usuario, livros: cincoPrimeirosLivros });
     });
 });
