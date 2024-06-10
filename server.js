@@ -9,14 +9,16 @@ const UsuarioDAO = require('./app/daos/usuarioDAO');
 const app = express();
 const port = 3000;
 
+
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(session({
     secret: '1234',
     resave: false,
     saveUninitialized: true,
-    cookie: { maxAge: 60000 }
+    cookie: { maxAge: 600000  }
 }));
+
 app.use(express.static('public'));
 app.set('views', './app/views');
 app.set('view engine', 'ejs');
@@ -50,15 +52,30 @@ app.get('/remover.html', (req, res) => {
     res.sendFile(__dirname + '/app/Views/remover.html');
 });
 
-app.get('/visualisar.ejs', (req, res) => {
+app.get('/visualizar.ejs', (req, res) => {
     res.sendFile(__dirname + '/app/Views/visualizar.ejs');
+});
+app.get('/home-logado', (req, res) => {
+    // Verifica se o usuário está logado
+    if (!req.session.usuario) {
+        return res.redirect('/login.html');
+    }
+
+    // Passe o nome do usuário para o frontend
+    const nom_usuario = req.session.nom_usuario;
+
+    res.render(__dirname + '/app/Views/home-logado', { nom_usuario });
+});
+
+app.get('/perfil.ejs', (req, res) => {
+    res.sendFile(__dirname + '/app/Views/perfil.ejs');
 });
 
 // Rota de Login
+
 app.post('/login', (req, res) => {
     const { nom_usuario, senha } = req.body;
 
-    // Validação do comprimento da senha
     if (senha.length !== 8) {
         return res.status(400).send('Senha deve ter exatamente 8 caracteres');
     }
@@ -78,7 +95,9 @@ app.post('/login', (req, res) => {
                 }
                 if (result) {
                     req.session.usuario = usuarioEncontrado;
-                    res.redirect('/');
+                    // Adicione o nome do usuário à sessão
+                    req.session.nom_usuario = nom_usuario;
+                    res.redirect('/home-logado');
                 } else {
                     res.status(401).send('Usuário ou senha incorretos');
                 }
@@ -86,8 +105,9 @@ app.post('/login', (req, res) => {
         }
     });
 });
-
 // Rota de Registro
+
+
 app.post('/register', (req, res) => {
     const { nom_usuario, senha } = req.body;
 
@@ -109,17 +129,9 @@ app.post('/register', (req, res) => {
                 console.error('Erro ao adicionar usuário ao banco de dados:', error);
                 return res.status(500).send('Erro ao processar o registro');
             }
-            res.redirect('/');
+            res.redirect('/login.html');
         });
     });
-});
-
-app.get('/dashboard', (req, res) => {
-    if (req.session.usuario) {
-        res.send('Painel do usuário');
-    } else {
-        res.redirect('/');
-    }
 });
 
 app.get('/usuario', (req, res) => {
@@ -134,16 +146,20 @@ app.get('/usuario', (req, res) => {
 
 
 
-// Rota para adicionar livro
 app.post('/adicionarLivro', (req, res) => {
     const { titulo, autor, genero, ano_de_publicacao, sinopse } = req.body;
+    const id_usuario = req.session.usuario ? req.session.usuario.id_usuario : null; // Pega o ID do usuário da sessão
+
+    if (!id_usuario) {
+        return res.status(401).send('Usuário não está logado');
+    }
 
     // Validação dos dados do livro
     if (!titulo || !autor || !genero || !ano_de_publicacao || !sinopse) {
         return res.status(400).send('Todos os campos são obrigatórios');
     }
 
-    LivroDAO.adicionar(titulo, autor, genero, ano_de_publicacao, sinopse, (error) => {
+    LivroDAO.adicionar(titulo, autor, genero, ano_de_publicacao, sinopse, id_usuario, (error) => {
         if (error) {
             console.error('Erro ao adicionar livro:', error);
             return res.status(500).send('Erro ao adicionar livro');
@@ -152,40 +168,59 @@ app.post('/adicionarLivro', (req, res) => {
     });
 });
 
+
 // Rota para buscar todos os livros
+
+
+
 app.get('/livros', (req, res) => {
-    const searchTerm = req.query.search;
-    if (searchTerm) {
-        // Se um termo de pesquisa foi fornecido, buscar livros com base no termo de pesquisa
-        LivroDAO.buscarPorTermoDePesquisa(searchTerm, (error, livros) => {
-            if (error) {
-                console.error('Erro ao buscar livros:', error);
-                return res.status(500).send('Erro ao buscar livros');
-            }
-            res.status(200).json(livros);
-        });
-    } else {
-        // Caso contrário, retornar todos os livros
-        LivroDAO.buscarTodos((error, livros) => {
-            if (error) {
-                console.error('Erro ao buscar livros:', error);
-                return res.status(500).send('Erro ao buscar livros');
-            }
-            res.status(200).json(livros);
-        });
+    const id_usuario = req.session.usuario ? req.session.usuario.id_usuario : null; // Pega o ID do usuário da sessão
+
+    if (!id_usuario) {
+        return res.status(401).send('Usuário não está logado');
     }
+
+    // Busca apenas os livros associados ao ID do usuário atual
+    LivroDAO.buscarTodosPorUsuario(id_usuario, (error, livros) => {
+        if (error) {
+            console.error('Erro ao buscar livros:', error);
+            return res.status(500).send('Erro ao buscar livros');
+        }
+        res.status(200).json(livros);
+    });
 });
+
+
 // Rota para remover livro
 
 app.post('/removerLivros', (req, res) => {
-    const livroId = req.body.id_livro;
+    const id_livro = req.body.id_livro;
+    const id_usuario = req.session.usuario ? req.session.usuario.id_usuario : null; // Pega o ID do usuário da sessão
 
-    LivroDAO.remover(livroId, (error) => {
+    if (!id_usuario) {
+        return res.status(401).send('Usuário não está logado');
+    }
+
+    // Primeiro verifique se o livro pertence ao usuário
+    LivroDAO.buscarTodosPorUsuario(id_usuario, (error, livros) => {
         if (error) {
-            console.error('Erro ao remover livro:', error);
-            return res.status(500).send('Erro ao remover livro');
+            console.error('Erro ao buscar livros:', error);
+            return res.status(500).send('Erro ao buscar livros');
         }
-        res.status(200).send('Livro removido com sucesso');
+
+        const livro = livros.find(livro => livro.id_livro === id_livro);
+        if (!livro) {
+            return res.status(403).send('Você não tem permissão para remover este livro');
+        }
+
+        // Se o livro pertence ao usuário, remova-o
+        LivroDAO.remover(id_livro, (error) => {
+            if (error) {
+                console.error('Erro ao remover livro:', error);
+                return res.status(500).send('Erro ao remover livro');
+            }
+            res.status(200).send('Livro removido com sucesso');
+        });
     });
 });
 
@@ -208,15 +243,59 @@ app.post('/editarLivro', (req, res) => {
 
 // ejs
 
-
 app.get('/visualizar', (req, res) => {
-    LivroDAO.buscarTodos((error, livros) => {
+    const id_usuario = req.session.usuario ? req.session.usuario.id_usuario : null; // Pega o ID do usuário da sessão
+
+    if (!id_usuario) {
+        return res.status(401).send('Usuário não está logado');
+    }
+
+    // Busca apenas os livros associados ao ID do usuário atual
+    LivroDAO.buscarTodosPorUsuario(id_usuario, (error, livros) => {
         if (error) {
             console.error('Erro ao buscar livros:', error);
             return res.status(500).send('Erro ao buscar livros');
         }
     
         res.render('visualizar', { livros });
+    });
+});
+
+//
+
+app.get('/perfil', (req, res) => {
+    const id_usuario = req.session.usuario ? req.session.usuario.id_usuario : null; // Pega o ID do usuário da sessão
+
+    if (!id_usuario) {
+        return res.redirect('/login.html'); // Redireciona se o usuário não estiver logado
+    }
+
+    // Busca os 5 primeiros livros associados ao ID do usuário atual
+    LivroDAO.buscarTodosPorUsuario(id_usuario, (error, livros) => {
+        if (error) {
+            console.error('Erro ao buscar livros:', error);
+            return res.status(500).send('Erro ao buscar livros');
+        }
+
+        // Limita a lista de livros aos 5 primeiros
+        const cincoPrimeirosLivros = livros.slice(0, 5);
+
+        // Renderiza a página de perfil com os 5 primeiros livros ou a mensagem de nenhum livro adicionado
+        res.render(__dirname + '/app/Views/perfil', { nom_usuario: req.session.nom_usuario, livros: cincoPrimeirosLivros });
+    });
+});
+
+
+// Rota para fazer logout
+app.get('/logout', (req, res) => {
+    // Destrua a sessão
+    req.session.destroy((err) => {
+        if (err) {
+            console.error('Erro ao fazer logout:', err);
+            return res.status(500).send('Erro ao fazer logout');
+        }
+        // Redirecione para a página de login após o logout
+        res.redirect('/login.html');
     });
 });
 
