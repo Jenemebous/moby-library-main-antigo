@@ -2,7 +2,7 @@ const db = require('../db/database');
 const bcrypt = require('bcryptjs');
 
 class UsuarioDAO {
-    constructor() {}
+    constructor() { }
 
     buscarPorUsuario(nom_usuario, callback) {
         const sql = 'SELECT * FROM users WHERE nom_usuario = ?';

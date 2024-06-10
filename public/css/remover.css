@@ -1,6 +1,6 @@
 body {
     font-family: Arial, sans-serif;
-    background-color: rgba(137, 123, 123, 0.47);
+    background-color: #D9D6D6;
     color: #333;
     margin: 0;
     padding: 0;
@@ -8,53 +8,46 @@ body {
 
 .header {
     display: flex;
-    justify-content: space-around;
+    justify-content: space-between;
     align-items: center;
-    padding: 5px;
-    background-color: #ffffff;
-    margin-bottom: 50px;
-   
-}
-
-
-section.remove-book{
-    margin-bottom: 250px;
-    padding-top: 10px;
+    padding: 10px 20px;
+    background-color: #fff;
+    border-bottom: 1px solid #ddd;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .title {
     margin: 0;
-    padding-bottom: 10px;
+    font-size: 1.5em;
     color: #646464;
-
 }
-
 
 .logo {
     width: 50px;
     height: auto;
 }
 
-
-h1 {
-    margin: 0;
-}
-
 main {
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
+    padding: 20px;
+    background-color: #D9D6D6;
+    min-height: calc(100vh - 60px); 
 }
 
 section {
-    margin: 10px;
     background-color: #fff;
     padding: 30px;
     border-radius: 10px;
     max-width: 500px;
     width: 100%;
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    margin: 10px;
+}
+
+h2 {
+    margin-top: 0;
 }
 
 .form {
@@ -70,6 +63,7 @@ label {
     font-weight: bold;
 }
 
+select,
 input[type="text"],
 input[type="number"],
 textarea {
@@ -81,13 +75,6 @@ textarea {
     box-sizing: border-box;
 }
 
-textarea {
-    height: 150px;
-    resize: none;
-}
-
-
-
 button {
     padding: 12px 20px;
     background-color: #552482;
@@ -95,7 +82,6 @@ button {
     border: none;
     border-radius: 5px;
     cursor: pointer;
-    width: 100%;
     transition: background-color 0.3s ease;
 }
 
@@ -106,14 +92,14 @@ button:hover {
 .footer {
     background-color: #552482;
     color: white;
-    padding: 0.5px;
+    padding: 20px 0;
     text-align: center;
-
 }
 
 .footer-nav ul {
     list-style: none;
     padding: 0;
+    margin: 0;
 }
 
 .footer-nav li {
@@ -127,5 +113,5 @@ button:hover {
 }
 
 .footer-nav a:hover {
-    text-decoration: none;
+    text-decoration: underline;
 }

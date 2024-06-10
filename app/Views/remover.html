@@ -18,11 +18,12 @@
             <form id="removerLivroForm" action="/removerLivros" method="post" class="form">
                 <div class="form-group">
                     <label for="id">ID do Livro:</label>
-                    <input type="number" id="id" name="id_livro" placeholder="Insira o ID do livro a ser removido">
+                    <select id="id" name="id_livro">
+                      
+                    </select>
                 </div>
-                <input type="hidden" name="_method" value="DELETE">
                 <button type="submit">Remover Livro</button>
-                <p>Não sabe o ID? Verifique <a href="/visualizar">aqui</a></p>
+        
             </form>
             <p id="mensagem"></p>
         </section>
@@ -37,5 +38,24 @@
             </ul>
         </nav>
     </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            fetch('/livrosDoUsuario')
+                .then(response => response.json())
+                .then(livros => {
+                    const select = document.getElementById('id');
+                    livros.forEach(livro => {
+                        const option = document.createElement('option');
+                        option.value = livro.id_livro;
+                        option.textContent = `${livro.id_livro} - ${livro.titulo}`;
+                        select.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error('Erro ao buscar livros do usuário:', error);
+                });
+        });
+    </script>
 </body>
 </html>

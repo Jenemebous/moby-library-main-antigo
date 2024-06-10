@@ -18,8 +18,12 @@
             <form id="editarLivroForm" action="/editarLivro" method="post" class="form">
                 <div class="form-group">
                     <label for="id">ID do Livro:</label>
-                    <input type="number" id="id" name="id" placeholder="Insira o ID do livro a ser editado">
+                    <select id="id" name="id">
+                        <option value="" disabled selected hidden>Selecione um livro</option>
+                    </select>
+                    
                 </div>
+    
                 <div class="form-group">
                     <label for="titulo">Novo Título:</label>
                     <input type="text" id="titulo" name="titulo" placeholder="Insira o novo título">
@@ -32,6 +36,7 @@
                     <label for="sinopse">Nova Sinopse:</label>
                     <textarea id="sinopse" name="sinopse" placeholder="Insira a nova sinopse"></textarea>
                 </div>
+                
                 <button type="submit">Editar Livro</button>
             </form>
             <p id="mensagem"></p>
@@ -47,5 +52,24 @@
             </ul>
         </nav>
     </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            fetch('/livrosDoUsuario')
+                .then(response => response.json())
+                .then(livros => {
+                    const select = document.getElementById('id');
+                    livros.forEach(livro => {
+                        const option = document.createElement('option');
+                        option.value = livro.id_livro;
+                        option.textContent = `${livro.id_livro} - ${livro.titulo}`; 
+                        select.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error('Erro ao buscar livros do usuário:', error);
+                });
+        });
+    </script>
 </body>
 </html>

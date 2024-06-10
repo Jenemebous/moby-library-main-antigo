@@ -1,6 +1,6 @@
 body {
     font-family: Arial, sans-serif;
-    background-color: rgba(137, 123, 123, 0.47);
+    background-color: #D9D6D6;
     color: #333;
     margin: 0;
     padding: 0;
@@ -126,4 +126,23 @@ button:hover {
 }
 .footer-nav a:hover {
     text-decoration: none;
+}
+
+select {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    margin-top: 5px;
+    width: 100%;
+    box-sizing: border-box;
+    background-color: white;
+    color: #333;
+    cursor: pointer;
+}
+
+
+select:focus {
+    outline: none;
+    border-color: #552482;
+    box-shadow: 0 0 5px rgba(85, 36, 130, 0.5);
 }
