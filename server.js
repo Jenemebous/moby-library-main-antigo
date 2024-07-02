@@ -1,8 +1,3 @@
-/* npm install bcrypt body-parser cookie-parser dotenv ejs express express-ejs-layouts express-session method-override  mysql mysql2 prompt-sync nodemon --save
-*/
-
-
-
 const express = require('express');
 const bodyParser = require('body-parser');
 const bcrypt = require('bcryptjs');
@@ -14,7 +9,7 @@ const UsuarioDAO = require('./app/daos/usuarioDAO');
 const app = express();
 const port = 3000;
 
-
+// Configurações do Express
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(session({
@@ -28,56 +23,76 @@ app.use(express.static('public'));
 app.set('views', './app/views');
 app.set('view engine', 'ejs');
 
-
+// Rotas
 app.get('/', (req, res) => {
-    res.sendFile(__dirname + '/app/Views/index.html');
+    res.render('index');
 });
 
-app.get('/signup.html', (req, res) => {
-    res.sendFile(__dirname + '/app/Views/signup.html');
+app.get('/signup', (req, res) => {
+    res.render('signup');
 });
 
-app.get('/login.html', (req, res) => {
-    res.sendFile(__dirname + '/app/Views/login.html');
+app.get('/login', (req, res) => {
+    res.render('login');
 });
 
-app.get('/perfil.html', (req, res) => {
-    res.sendFile(__dirname + '/app/Views/perfil.html');
-});
+app.get('/perfil', (req, res) => {
+    const id_usuario = req.session.usuario ? req.session.usuario.id_usuario : null;
 
-app.get('/adicionar.html', (req, res) => {
-    res.sendFile(__dirname + '/app/Views/adicionar.html');
-});
-
-app.get('/editar.html', (req, res) => {
-    res.sendFile(__dirname + '/app/Views/editar.html');
-});
-
-app.get('/remover.html', (req, res) => {
-    res.sendFile(__dirname + '/app/Views/remover.html');
-});
-
-app.get('/visualizar.ejs', (req, res) => {
-    res.sendFile(__dirname + '/app/Views/visualizar.ejs');
-});
-app.get('/home-logado', (req, res) => {
-    // Verifica se o usuário está logado
-    if (!req.session.usuario) {
-        return res.redirect('/login.html');
+    if (!id_usuario) {
+        return res.redirect('/login');
     }
 
-    // Passa o nome do usuário para o frontend
+    LivroDAO.buscarTodosPorUsuario(id_usuario, (error, livros) => {
+        if (error) {
+            console.error('Erro ao buscar livros:', error);
+            return res.status(500).send('Erro ao buscar livros');
+        }
+
+        const cincoPrimeirosLivros = livros.slice(0, 5);
+        res.render('perfil', { nom_usuario: req.session.nom_usuario, livros: cincoPrimeirosLivros });
+    });
+});
+
+app.get('/adicionar', (req, res) => {
+    res.render('adicionar');
+});
+
+app.get('/editar', (req, res) => {
+    res.render('editar');
+});
+
+app.get('/remover', (req, res) => {
+    res.render('remover');
+});
+
+app.get('/visualizar', (req, res) => {
+    const id_usuario = req.session.usuario ? req.session.usuario.id_usuario : null;
+
+    if (!id_usuario) {
+        return res.redirect('/login');
+    }
+
+    LivroDAO.buscarTodosPorUsuario(id_usuario, (error, livros) => {
+        if (error) {
+            console.error('Erro ao buscar livros:', error);
+            return res.status(500).send('Erro ao buscar livros');
+        }
+
+        res.render('visualizar', { livros });
+    });
+});
+
+app.get('/home-logado', (req, res) => {
+    if (!req.session.usuario) {
+        return res.redirect('/login');
+    }
+
     const nom_usuario = req.session.nom_usuario;
-
-    res.render(__dirname + '/app/Views/home-logado', { nom_usuario });
+    res.render('home-logado', { nom_usuario });
 });
-
-app.get('/perfil.ejs', (req, res) => {
-    res.sendFile(__dirname + '/app/Views/perfil.ejs');
-});
-
-// Rota de Login
-
+/*
+// Rotas de ação
 app.post('/login', (req, res) => {
     const { nom_usuario, senha } = req.body;
 
@@ -92,31 +107,63 @@ app.post('/login', (req, res) => {
         }
         if (!usuarioEncontrado) {
             return res.status(401).send('Usuário ou senha incorretos');
-        } else {
-            bcrypt.compare(senha, usuarioEncontrado.senha, (err, result) => {
-                if (err) {
-                    console.error('Erro ao comparar senhas:', err);
-                    return res.status(500).send('Erro ao processar o login');
-                }
-                if (result) {
-                    req.session.usuario = usuarioEncontrado;
-                    // Adicione o nome do usuário à sessão
-                    req.session.nom_usuario = nom_usuario;
-                    res.redirect('/home-logado');
-                } else {
-                    res.status(401).send('Usuário ou senha incorretos');
-                }
-            });
         }
+        bcrypt.compare(senha, usuarioEncontrado.senha, (err, result) => {
+            if (err) {
+                console.error('Erro ao comparar senhas:', err);
+                return res.status(500).send('Erro ao processar o login');
+            }
+            if (result) {
+                req.session.usuario = usuarioEncontrado;
+                req.session.nom_usuario = nom_usuario;
+                res.redirect('/home-logado');
+            } else {
+                res.status(401).send('Usuário ou senha incorretos');
+            }
+        });
     });
 });
-// Rota de Registro
+*/
 
+app.post('/login', (req, res) => {
+    const { nom_usuario, senha } = req.body;
 
+    if (senha.length !== 8) {
+        res.render('login', { error: 'Senha deve ter exatamente 8 caracteres' });
+        return;
+    }
+
+    UsuarioDAO.buscarPorUsuario(nom_usuario, (error, usuarioEncontrado) => {
+        if (error) {
+            console.error('Erro ao buscar usuário:', error);
+            res.render('login', { error: 'Erro ao processar o login' });
+            return;
+        }
+        if (!usuarioEncontrado) {
+            res.render('login', { error: 'Usuário ou senha incorretos' });
+            return;
+        }
+        bcrypt.compare(senha, usuarioEncontrado.senha, (err, result) => {
+            if (err) {
+                console.error('Erro ao comparar senhas:', err);
+                res.render('login', { error: 'Erro ao processar o login' });
+                return;
+            }
+            if (result) {
+                req.session.usuario = usuarioEncontrado;
+                req.session.nom_usuario = nom_usuario;
+                res.redirect('/home-logado');
+            } else {
+                res.render('login', { error: 'Usuário ou senha incorretos' });
+            }
+        });
+    });
+});
+
+/*
 app.post('/register', (req, res) => {
     const { nom_usuario, senha } = req.body;
 
-    // Validação do comprimento da senha
     if (senha.length !== 8) {
         return res.status(400).send('Senha deve ter exatamente 8 caracteres');
     }
@@ -134,10 +181,41 @@ app.post('/register', (req, res) => {
                 console.error('Erro ao adicionar usuário ao banco de dados:', error);
                 return res.status(500).send('Erro ao processar o registro');
             }
-            res.redirect('/login.html');
+            res.redirect('/login');
         });
     });
 });
+*/
+
+app.post('/register', (req, res) => {
+    const { nom_usuario, senha } = req.body;
+
+    if (senha.length !== 8) {
+        res.render('signup', { error: 'Senha deve ter exatamente 8 caracteres' });
+        return;
+    }
+
+    UsuarioDAO.buscarPorUsuario(nom_usuario, (error, usuarioEncontrado) => {
+        if (error) {
+            console.error('Erro ao buscar usuário:', error);
+            res.render('signup', { error: 'Erro ao processar o registro' });
+            return;
+        }
+        if (usuarioEncontrado) {
+            res.render('signup', { error: 'Usuário já existe' });
+            return;
+        }
+        UsuarioDAO.adicionar(nom_usuario, senha, (error) => {
+            if (error) {
+                console.error('Erro ao adicionar usuário ao banco de dados:', error);
+                res.render('signup', { error: 'Erro ao processar o registro' });
+                return;
+            }
+            res.redirect('/login');
+        });
+    });
+});
+
 
 app.get('/usuario', (req, res) => {
     UsuarioDAO.buscarTodos((error, resultados) => {
@@ -313,23 +391,19 @@ app.get('/perfil', (req, res) => {
     });
 });
 
-
 // Rota para fazer logout
 app.get('/logout', (req, res) => {
-    // Destrua a sessão
     req.session.destroy((err) => {
         if (err) {
             console.error('Erro ao fazer logout:', err);
             return res.status(500).send('Erro ao fazer logout');
         }
-        // Redirecione para a página de login após o logout
-        res.redirect('/login.html');
+        res.redirect('/login');
     });
 });
 
-
+// Iniciar servidor
 app.listen(port, () => {
     console.log(`Servidor rodando na porta ${port}`);
     console.log(`http://localhost:${port}`);
 });
-
